@@ -5,7 +5,8 @@ html, body {
 }
 .titulo{
     text-align: center;
-    background-color: blue;
+    background: rgb(0,12,36);
+background: linear-gradient(90deg, rgba(0,12,36,1) 56%, rgba(0,16,36,0.896796218487395) 70%, rgba(13,204,172,1) 100%);
     color: white;
     padding: 20px;
     font-size: 25px;
@@ -17,8 +18,8 @@ html, body {
     margin-left: -75px;
 }
 
-#Jugador-cartas,
-#Computadora-cartas{
+#jugador-cartas,
+#computadora-cartas{
     height: 240px;
 }
 
