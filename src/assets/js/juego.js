@@ -1,26 +1,37 @@
-/**
- * 2c = 2 de trebol(clubs)
- * 2D = 2 de diamante (diamont)
- * 2H = de corazones (hear)
- * 2S =  2 de picas (spades)
- */
+const juegp = (() =>{
+   
 
 let baraja = []
 const tipos = ['C', 'D', 'H', 'S']
 const letras = ['J', 'Q', 'K', 'A']
-let puntosJugador = 0
-let puntosComputadora = 0
 
+let puntosJugadores=[] // e lultimo jugador siempre es la computadora
 //referencias al HTML
-const btnPedir = document.querySelector('#btn-pedir')
-// const smallPuntajeJugador = document.querySelector('small')
-const btnDetener = document.querySelector('#btn-detener')
-const btnNuevo = document.querySelector('#btn-nuevo')
-const puntosHTML = document.querySelectorAll('small')
-const divJugadorCartas = document.querySelector('#jugador-cartas')
-const divComputadoraCartas = document.querySelector('#computadora-cartas')
+const btnPedir = document.querySelector('#btn-pedir'),
+//  smallPuntajeJugador = document.querySelector('small'),
+ btnDetener = document.querySelector('#btn-detener'),
+ btnNuevo = document.querySelector('#btn-nuevo'),
+ puntosHTML = document.querySelectorAll('small')
 
+divCartasJugadores = document.querySelectorAll('.divCartas')
+const inicializarJuego = (numJugadores = 2) => {
+    console.clear()
+    baraja = crearBaraja()
+    puntosJugadores =[]
+
+        for(let i= 0; i < numJugadores; i++){
+        puntosJugadores.push(0)
+}
+    puntosHTML.forEach((elem) => (elem.innerText = 0))
+    divCartasJugadores.forEach((elem) => (elem.innerHTML = ''))
+    
+    btnPedir.disabled = false
+    btnDetener.disabled = true
+   
+}
 const crearBaraja = () => {
+    // se reinicializa la  baraja
+    baraja=[]
     // se puebla el arreglo con los numeros y tipos de baraja
     for (let i = 2; i <= 10; i++) {
         for (let tipo of tipos) {
@@ -33,94 +44,93 @@ for( let letra of letras){
         baraja.push(letra + tipo)
     }
 }
-baraja = _.shuffle(baraja)
+return _.shuffle(baraja)
 }
-crearBaraja()
-// console.log(baraja)
+// crearBaraja()
 
-// esta funcion va a pedir una carta
 const pedirCarta = () => {
+    
+
     const barajaTamanio = baraja.length
 if ( barajaTamanio  === 0) throw 'no hay cartas en la baraja'
-const index = Math.floor(Math.random() * barajaTamanio)
-// console.log({ index })
-const carta = baraja.splice(index, 1)[0]
- console.log({ carta})
-// console.log(baraja)
-return carta 
+return baraja.splice(Math.floor(Math.random() * barajaTamanio), 1)[0]
 }
-pedirCarta()
+
  const valorCarta = (carta) => {
      const valor = carta.substring(0, carta.length - 1)
      return isNaN(valor) ? (valor === 'A' ? 11 : 10) : Number(valor)
  }
-//  console.log(valorCarta(pedirCarta())
-const TurnoComputadora = (puntosMinimos) => {
+ const acumularPuntos = (carta, turno)=> {
+     puntosJugadores[turno] += valorCarta(carta)
+     puntosHTML[turno].innerText = puntosJugadores[turno]
+     return puntosJugadores[turno]
+ }
+ const crearCarta = (carta, turno)=>{
+const imgCarta = document.createElement('img')
+imgCarta.src = `assets/cartas/${carta}.png`
+imgCarta.classList.add('carta')
+divCartasJugadores[turno].append(imgCarta)
+ }
+
+const determinarGanador=() => {
+    const [puntosMinimos, puntosComputadora] = puntosJugadores
+
+    setTimeout(() => {
+        if(puntosMinimos === puntosComputadora) alert('Hubo empate')
+        else if (puntosMinimos > 21) alert('Computadora gana')
+        else if (puntosComputadora > 21) alert('Genial ganaste')
+        else alert('Computadora gana')
+       },100)
+}
+const turnoComputadora = (puntosMinimos) => {
+    let puntosComputadora = 0
     do{
     const carta = pedirCarta()
-    puntosComputadora += valorCarta(carta)
-    puntosHTML[1].innerText = puntosComputadora
+ const turnoComputadora = puntosJugadores.length -1
 
-    const imgCarta = document.createElement('img')
-    imgCarta.src = `assets/cartas/${carta}.png`
-    imgCarta.classList.add('carta')
-    divComputadoraCartas.append(imgCarta)
+    puntosComputadora = acumularPuntos(carta, turnoComputadora)
+    crearCarta(carta, turnoComputadora)
 
 if(puntosMinimos > 21) break
   }  while(puntosComputadora <= puntosMinimos && puntosMinimos <= 21)
-setTimeout(() => {
-  if(puntosMinimos === puntosComputadora) alert('Hubo empate')
-  else if (puntosMinimos > 21) alert('Computadora gana')
-  else if (puntosComputadora > 21) alert('Genial ganaste')
-  else alert('Computadora gana')
- },100)
+   determinarGanador()
 }
 
  //EVENTOS
  btnPedir.addEventListener('click',() => {
+    btnDetener.disabled = false
      const carta = pedirCarta()
-    //  console.log({ carta })
-     puntosJugador += valorCarta(carta)
-    //  console.log({ puntosJugador })
-    //  smallPuntajeJugador.innerText = puntosJugador
-    puntosHTML[0].innerText = puntosJugador
+    const puntosJugador = acumularPuntos(carta, puntosJugadores.length -2)
 
-     //<img class= "carta" src="assest/cartas/KD.png" alt="">
-     const imgCarta = document.createElement('img')
-     imgCarta.src = `assets/cartas/${carta}.png`
-     imgCarta.classList.add('carta')
-     divJugadorCartas.append(imgCarta)
+    crearCarta(carta, 0)
 
      if(puntosJugador > 21) {
          btnPedir.disabled  = true
          btnDetener.disabled = true
          console.warn('Lo siento,ya perdiste')
-         TurnoComputadora(puntosJugador)
+         turnoComputadora(puntosJugador)
      }else if (puntosJugador === 21) {
          btnPedir.disabled = true
          btnDetener.disabled = true
-         console.warn('21, Genial')
-         TurnoComputadora(puntosJugador)
+         
+         turnoComputadora(puntosJugador)
      }
 })
 btnDetener.addEventListener('click', () => {
     btnPedir.disabled = true
     btnDetener.disabled = true 
-    TurnoComputadora(puntosJugador)
+    turnoComputadora(puntosJugadores[0])
 })
 btnNuevo.addEventListener('click', () => {
-
-    puntosJugador = 0
-    puntosComputadora = 0
-    btnPedir.disabled = false
-    btnDetener.disabled = false
-    puntosHTML[0].innerText = 0
-    puntosHTML[1].innerText = 0
-    divJugadorCartas.innerHTML = ''
-    divComputadoraCartas.innerHTML = ''
+inicializarJuego()
+    
     console.clear()
-    crearBaraja()
 })
+return{nuevo: inicializarJuego}
+})()
+
+
+
 
      
 
